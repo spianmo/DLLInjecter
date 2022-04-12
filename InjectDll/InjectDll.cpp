@@ -46,6 +46,9 @@ void Handle_WM_DROPFILES(HWND hWnd, WPARAM wParam)
 	// Get the name of the file that was dropped on us, the release the HDROP
 	cbFileName = DragQueryFile((HDROP)wParam, 0, szFileName, sizeof(szFileName));
 	DragFinish((HDROP)wParam);
+	strcpy_s(szDllPath, szFileName);
+	string dllFullPath = string(szFileName);
+	strcpy_s(szDName, dllFullPath.substr(dllFullPath.find_last_of('\\') + 1).c_str());
 	SendDlgItemMessage(hWnd, IDC_EDIT_DLL_PATH, WM_SETTEXT, 0, (LPARAM)szFileName);
 }
 
