@@ -1,11 +1,10 @@
 ﻿//{{NO_DEPENDENCIES}}
-// Microsoft Visual C++ 生成的包含文件。
-// 供 InjectDll.rc 使用
+// Microsoft Visual C++ generated include file.
+// Used by InjectDll.rc
 //
 #define IDI_INJECTDLL                   107
 #define IDI_SMALL                       108
 #define IDD_DLG_MAIN                    129
-#define IDD_DLG_ABOUT                   130
 #define IDC_BTN_INJECT                  1000
 #define IDC_BTN_UNINJECT                1001
 #define IDC_BTN_ABOUT                   1002
@@ -13,9 +12,6 @@
 #define IDC_EDIT_PROCESS_NAME           1011
 #define IDC_BTN_OPEN                    1013
 #define IDC_STATIC_PNAME                1014
-#define IDC_STATIC_AUTHOR               1015
-#define IDC_BTN_OK                      1016
-#define IDC_PIC_ICON                    1017
 
 // Next default values for new objects
 // 

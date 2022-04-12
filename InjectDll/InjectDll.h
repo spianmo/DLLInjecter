@@ -26,7 +26,6 @@ TCHAR szPName[_MAX_FNAME];
 BOOL InjectDll();
 BOOL UnInjectDll();
 BOOL OpenFileDlg(HWND);
-LRESULT CALLBACK    AboutProc(HWND, UINT, WPARAM, LPARAM);
 LRESULT CALLBACK    MainDlgProc(HWND, UINT, WPARAM, LPARAM);
 
 #endif

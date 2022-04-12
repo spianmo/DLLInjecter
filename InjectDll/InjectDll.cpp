@@ -23,10 +23,7 @@ LRESULT CALLBACK MainDlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	switch (uMsg)
 	{
 	case WM_CLOSE:
-		if (MessageBox(NULL, _T("是否退出？"), _T("退出"), MB_YESNO) == IDYES)
-		{
-			EndDialog(hWnd, 0);
-		}
+		EndDialog(hWnd, 0);
 		break;
 	case WM_INITDIALOG:
 		// 设置图标
@@ -47,11 +44,6 @@ LRESULT CALLBACK MainDlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		iWmId = LOWORD(wParam);               // 触发消息的控件ID
 		iWmEvent = HIWORD(wParam);			  // 消息码
 		
-		if (iWmId == IDC_BTN_ABOUT)
-		{
-			DialogBox(NULL, MAKEINTRESOURCE(IDD_DLG_ABOUT), hWnd, (DLGPROC)AboutProc);
-			break;
-		}
 		if (iWmId == IDC_BTN_OPEN)
 		{
 			if (OpenFileDlg(hWnd))
@@ -122,36 +114,6 @@ LRESULT CALLBACK MainDlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     return 0;
 }
 
-LRESULT CALLBACK    AboutProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
-{
-	int iWmId, iWmEvent;
-	HICON hIcon;
-	switch (uMsg)
-	{
-	case WM_INITDIALOG:
-		// 显示图标
-		hIcon = LoadIcon(hInst, MAKEINTRESOURCE(IDI_INJECTDLL));
-		SendDlgItemMessage(hWnd, IDC_PIC_ICON, STM_SETICON, (WPARAM)hIcon, 0);
-		SendMessage(hWnd, WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
-		break;
-	case WM_COMMAND:
-		iWmId = LOWORD(wParam);               // 触发消息的控件ID
-		iWmEvent = HIWORD(wParam);			  // 消息码
-
-		if (IDC_BTN_OK == iWmId)
-		{
-			EndDialog(hWnd, 0);
-		}
-		break;
-	case WM_CLOSE:
-		EndDialog(hWnd, 0);
-		break;
-	//default:
-	//	return DefWindowProc(hWnd, uMsg, wParam, lParam);
-	}
-	return 0;
-}
-
 BOOL OpenFileDlg(HWND hWnd)
 {
 	OPENFILENAME ofn;
@@ -169,7 +131,7 @@ BOOL OpenFileDlg(HWND hWnd)
 	ofn.lpstrFileTitle = szDName;
 	ofn.nMaxFileTitle = _MAX_FNAME;
 	ofn.lpstrInitialDir = TEXT(".");
-	ofn.lpstrTitle = TEXT("Open...(By 技术刘)");
+	ofn.lpstrTitle = TEXT("Open DLL");
 
 	if (!GetOpenFileName(&ofn))
 	{
