@@ -2,6 +2,10 @@
 //
 #include "InjectDll.h"
 #include "resource.h"
+#include <commctrl.h>
+#include <Windows.h>
+#include <windowsx.h>
+#include <shellapi.h>
 #pragma comment(lib, "ComCtl32.lib")
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCmdLine, int nCmdShow)
@@ -9,6 +13,18 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCmdLin
 	hInst = hInstance;
 	DialogBox(hInstance, MAKEINTRESOURCE(IDD_DLG_MAIN), NULL, (DLGPROC)MainDlgProc);
     return 0;
+}
+
+void Handle_WM_DROPFILES(HWND hWnd, WPARAM wParam)
+{
+	char szFileName[MAX_PATH];
+	UINT cbFileName;
+
+	// Get the name of the file that was dropped on us, the release the HDROP
+	cbFileName = DragQueryFile((HDROP)wParam, 0, szFileName, sizeof(szFileName));
+	DragFinish((HDROP)wParam);
+
+	SendDlgItemMessage(hWnd, IDC_EDIT_DLL_PATH, WM_SETTEXT, 0, (LPARAM)szFileName);
 }
 
 //
@@ -22,6 +38,9 @@ LRESULT CALLBACK MainDlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	int iWmId, iWmEvent;
 	switch (uMsg)
 	{
+	case WM_DROPFILES:
+		Handle_WM_DROPFILES(hWnd, wParam);
+		break;
 	case WM_CLOSE:
 		EndDialog(hWnd, 0);
 		break;
