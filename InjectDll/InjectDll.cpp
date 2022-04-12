@@ -6,11 +6,34 @@
 #include <Windows.h>
 #include <windowsx.h>
 #include <shellapi.h>
+#include <cstring>
+#include <iostream>
+#include <fstream>
 #pragma comment(lib, "ComCtl32.lib")
+
+using namespace std;
+
+LPTSTR* CommandLineToArgv(LPTSTR cmdline, int* pargc);
+
+void handleParams() {
+	int argc;
+	LPTSTR* argv = CommandLineToArgv(_lpCmdLine, &argc);
+	if (argc == 2)
+	{
+		strcpy_s(szPName, argv[1]);
+		dwPID = GetPIDForProcess(argv[1]);
+		strcpy_s(szDllPath, argv[0]);
+		string dllFullPath = string(argv[0]);
+		strcpy_s(szDName, dllFullPath.substr(dllFullPath.find_last_of('\\') + 1).c_str());
+		SendDlgItemMessage(hWndInstance, IDC_EDIT_DLL_PATH, WM_SETTEXT, 0, (LPARAM)argv[0]);
+		SendDlgItemMessage(hWndInstance, IDC_EDIT_PROCESS_NAME, WM_SETTEXT, 0, (LPARAM)argv[1]);
+	}
+}
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCmdLine, int nCmdShow)
 {
 	hInst = hInstance;
+	_lpCmdLine = lpCmdLine;
 	DialogBox(hInstance, MAKEINTRESOURCE(IDD_DLG_MAIN), NULL, (DLGPROC)MainDlgProc);
     return 0;
 }
@@ -23,7 +46,6 @@ void Handle_WM_DROPFILES(HWND hWnd, WPARAM wParam)
 	// Get the name of the file that was dropped on us, the release the HDROP
 	cbFileName = DragQueryFile((HDROP)wParam, 0, szFileName, sizeof(szFileName));
 	DragFinish((HDROP)wParam);
-
 	SendDlgItemMessage(hWnd, IDC_EDIT_DLL_PATH, WM_SETTEXT, 0, (LPARAM)szFileName);
 }
 
@@ -35,6 +57,7 @@ void Handle_WM_DROPFILES(HWND hWnd, WPARAM wParam)
 //
 LRESULT CALLBACK MainDlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+	hWndInstance = hWnd;
 	int iWmId, iWmEvent;
 	switch (uMsg)
 	{
@@ -58,6 +81,9 @@ LRESULT CALLBACK MainDlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			EndDialog(hWnd, 0);
 			return FALSE;
 		}
+		memset(szDllPath, 0, MAX_PATH);
+		memset(szDName, 0, _MAX_FNAME);
+		handleParams();
 		return TRUE;
 	case WM_COMMAND:
 		iWmId = LOWORD(wParam);               // 触发消息的控件ID
@@ -67,7 +93,6 @@ LRESULT CALLBACK MainDlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		{
 			if (OpenFileDlg(hWnd))
 			{
-				//MessageBox(hWnd, _T("打开文件失败！"), _T("错误"), MB_OK | MB_ICONERROR);
 				SendDlgItemMessage(hWnd, IDC_EDIT_DLL_PATH, WM_SETTEXT, 0, (LPARAM)szDllPath);
 				break;
 			}
@@ -93,6 +118,9 @@ LRESULT CALLBACK MainDlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			{
 				MessageBox(NULL, _T("注入DLL失败！"), _T("注入失败"), MB_OK);
 				break;
+			}
+			else {
+				MessageBox(NULL, _T("注入DLL成功！"), _T("注入成功"), MB_OK);
 			}
 			break;
 		}
@@ -136,8 +164,6 @@ LRESULT CALLBACK MainDlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 BOOL OpenFileDlg(HWND hWnd)
 {
 	OPENFILENAME ofn;
-	memset(szDllPath, 0, MAX_PATH);
-	memset(szDName, 0, _MAX_FNAME);
 	memset(&ofn, 0, sizeof(ofn));
 
 	ofn.lStructSize = sizeof(ofn);
@@ -250,4 +276,58 @@ BOOL UnInjectDll()
 	//CloseHandle(hThread);
 	//CloseHandle(hProcess);
 	return TRUE;
+}
+
+LPTSTR* CommandLineToArgv(LPTSTR cmdline, int* pargc)
+{							// CommandLineToArgv
+	int argc = 0;
+	while (*cmdline == _T(' ') || *cmdline == _T('\t'))
+		++cmdline;				// skip leading blanks
+
+	LPTSTR arg = cmdline;
+	while (*arg)
+	{						// count arguments
+		TCHAR ch;
+		while ((ch = *arg) == _T(' ') || ch == _T('\t'))
+			*arg++ = _T(' ');	// skip leading blanks, replace tabs with blanks
+		if (!ch)
+			break;				// end of command line
+
+		++argc;
+
+		if (ch == _T('\"'))
+		{					// quoted arg
+			*arg++ = _T(' ');	// replace leading quote with space
+			while ((ch = *arg) && ch != _T('\"'))
+				++arg;			// find trailing quote
+		}					// quoted arg
+		else
+		{					// unquoted arg
+			while ((ch = *arg) && ch != _T(' ') && ch != _T('\t'))
+				++arg;			// find space after arg
+		}					// unquoted arg
+
+		if (ch)
+			*arg++ = 0;			// change ending delimiter to nul
+	}						// count arguments
+
+	if (!argc)
+		return NULL;			// no arguments
+
+	LPTSTR* argv = (LPTSTR*)malloc(argc * sizeof(LPTSTR));
+	if (!argv)
+		return NULL;			// can't allocate memory
+
+	arg = cmdline;
+	for (int iarg = 0; iarg < argc; ++iarg)
+	{						// fill in argv array
+		TCHAR ch;
+		while ((ch = *arg) == _T(' '))
+			++arg;				// skip to start of arg
+		argv[iarg] = arg;
+		arg += _tcslen(arg) + 1;	// skip to end of arg
+	}						// fill in argv array
+
+	*pargc = argc;
+	return argv;
 }

@@ -21,6 +21,8 @@ char szDllPath[MAX_PATH];
 char szDName[_MAX_FNAME];
 DWORD dwPID = 0;
 TCHAR szPName[_MAX_FNAME];
+HWND hWndInstance;
+LPTSTR _lpCmdLine;
 
 // Ç°ÖÃÉùÃ÷
 BOOL InjectDll();
